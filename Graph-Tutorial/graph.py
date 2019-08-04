@@ -1,5 +1,6 @@
 #!python
-
+from queue import SimpleQueue
+import random
 """ Vertex Class
 A helper class for the Graph class that defines vertices and vertex neighbors.
 """
@@ -29,7 +30,7 @@ class Vertex(object):
         """output the list of neighbors of this vertex"""
         return str(self.id) + " adjancent to " + str([x.id for x in self.neighbors])
 
-    def getNeighbors(self):
+    def get_neighbors(self):
         """return the neighbors of this vertex"""
         # TODO return the neighbors
         return self.neighbors
@@ -54,7 +55,7 @@ class Graph:
     def __init__(self):
         """ initializes a graph object with an empty dictionary.
         """
-        self.vertList = {}
+        self.vertlist = {}
         self.numVertices = 0
 
     def addVertex(self, key):
@@ -67,15 +68,15 @@ class Graph:
         # TODO return the new vertex
         self.numVertices += 1
         newVertex = Vertex(key)
-        self.vertList[key] = newVertex
+        self.vertlist[key] = newVertex
         return newVertex
 
 
     def getVertex(self, key):
         """return the vertex if it exists"""
         # TODO return the vertex if it is in the graph
-        if key in self.vertList:
-            return self.vertList[key]
+        if key in self.vertlist:
+            return self.vertlist[key]
         else:
             return None
 
@@ -87,23 +88,90 @@ class Graph:
         # TODO if both vertices in the graph, add the
         # edge by making t a neighbor of f
         # and using the addNeighbor method of the Vertex class.
-        # Hint: the vertex f is stored in self.vertList[f].
-        if f not in self.vertList:
+        # Hint: the vertex f is stored in self.vertlist[f].
+        if f not in self.vertlist:
             self.addVertex(f)
-        if t not in self.vertList:
+        if t not in self.vertlist:
             self.addVertex(t)
-        self.vertList[f].addNeighbor(self.vertList[t], cost)
+        self.vertlist[f].addNeighbor(self.vertlist[t], cost)
 
     def getVertices(self):
         """return all the vertices in the graph"""
-        return self.vertList.keys()
+        return self.vertlist.keys()
 
     def __iter__(self):
         """iterate over the vertex objects in the
         graph, to use sytax: for v in g
         """
-        return iter(self.vertList.values())
+        return iter(self.vertlist.values())
 
+    def breadth_first_search(self, start_vertex, n):
+        result = []
+        visited = set()
+        queue = SimpleQueue()
+
+        queue.put(self.vertlist[start_vertex])
+
+        while len(result) < n or queue.qsize() > 0:
+            current_vertex = queue.get()
+
+            if current_vertex not in visited:
+                visited.add(current_vertex)
+                result.append(current_vertex.id)
+
+                for neighbor in current_vertex.get_neighbors():
+                    queue.put(neighbor)
+
+        return result
+    
+    def find_path(self, f, t):
+        result = []
+        visited = set()
+        queue = SimpleQueue()
+
+        while queue.qsize() > 0:
+            current_vertex = queue.get()
+
+            if current_vertex not in visited:
+                visited.add(current_vertex)
+                result.append(current_vertex.id)
+
+                for neighbor in current_vertex.get_neighbors():
+                    if neighbor.id == t:
+                        result.append(neighbor.id)
+                        return result
+                    queue.put(neighbor)
+        return result
+
+    def find_shortest_path(self, f, t):
+        result = []
+        visited = set()
+        queue = SimpleQueue()
+
+        while queue.qsize() > 0:
+            current_vertex = queue.get()
+
+            if current_vertex not in visited:
+                visited.add(current_vertex)
+                result.append(current_vertex.id)
+
+                for neighbor in current_vertex.get_neighbors():
+                    if neighbor.id == t:
+                        result.append(neighbor.id)
+                        return result
+                    queue.put(neighbor)
+        return result
+
+    def clique(self):
+        random_key = random.choice(self.vertlist.keys())
+        clique = set(random_key)
+        vertices = [(k, v) for k, v in self.vertlist.items() if k != random_key]
+
+        for id, vertex in vertices:
+            for neighbor in vertex.get_neighbors(as_string=True):
+                if neighbor in clique:
+                    clique.add(id)
+        return clique
 
 # Driver code
 
@@ -165,4 +233,4 @@ if __name__ == "__main__":
     print("The edges are: ")
     for v in g:
         for w in v.getNeighbors():
-            print("( %s , %s )" % (v.getId(), w.getId()))
+            print("( %s , %s, %s )" % (v.getId(), w.getId(), v.getEdgeWeight(w)))
